@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reading Room — Document Q&A</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #EAE5D8;
+    --paper-raised: #F5F1E7;
+    --paper-well: #DEDACC;
+    --ink: #201F1B;
+    --ink-soft: #6B6659;
+    --ink-faint: #8C8878;
+    --rule: #CFC7B3;
+    --rule-soft: #DDD6C4;
+    --green: #33604F;
+    --green-deep: #234439;
+    --brass: #A47A44;
+    --red-stamp: #9B4638;
+    --shadow-soft: rgba(32, 31, 27, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(circle at 15% 8%, rgba(255,255,255,0.35), transparent 45%),
+      var(--paper);
+    color: var(--ink);
+    font-family: 'Source Serif 4', Georgia, serif;
+    line-height: 1.55;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--brass); color: var(--paper-raised); }
+
+  header {
+    padding: 36px 44px 24px;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+  }
+
+  header::after {
+    content: "";
+    position: absolute;
+    bottom: -1px; left: 44px;
+    width: 46px; height: 3px;
+    background: var(--green);
+  }
+
+  header h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: 0.005em;
+  }
+
+  header p {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.96rem;
+    max-width: 58ch;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 306px 1fr;
+    min-height: calc(100vh - 104px);
+  }
+
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+
+  .drawer {
+    border-right: 1px solid var(--rule);
+    padding: 32px 26px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.012), transparent 60px);
+  }
+
+  .drawer-section { margin-bottom: 36px; }
+  .drawer-section:last-child { margin-bottom: 0; }
+
+  .drawer-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+
+  .upload-box {
+    border: 1px dashed var(--rule);
+    border-radius: 3px;
+    padding: 20px;
+    background: var(--paper-raised);
+    box-shadow: inset 0 1px 2px var(--shadow-soft);
+    transition: border-color 0.2s ease;
+  }
+
+  .upload-box:has(input:focus) { border-color: var(--brass); }
+
+  input[type="file"] {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    width: 100%;
+    margin-bottom: 14px;
+    color: var(--ink-soft);
+  }
+
+  input[type="file"]::file-selector-button {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    background: var(--paper-well);
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+    padding: 5px 10px;
+    margin-right: 10px;
+    cursor: pointer;
+    color: var(--ink-soft);
+  }
+  input[type="file"]::file-selector-button:hover { background: var(--rule-soft); }
+
+  button {
+    font-family: 'Source Serif 4', serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: var(--green);
+    color: var(--paper-raised);
+    border: none;
+    padding: 9px 18px;
+    border-radius: 3px;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+    transition: background 0.15s ease, transform 0.08s ease;
+  }
+
+  button:hover { background: var(--green-deep); }
+  button:active { transform: translateY(1px); box-shadow: none; }
+  button:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+
+  button.ghost {
+    background: transparent;
+    color: var(--ink-faint);
+    border: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 400;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    padding: 0;
+    box-shadow: none;
+    text-decoration: underline;
+    text-decoration-color: var(--rule);
+    text-underline-offset: 3px;
+  }
+  button.ghost:hover { color: var(--green); text-decoration-color: var(--green); background: none; }
+  button.ghost:active { transform: none; }
+
+  .upload-status {
+    margin-top: 12px;
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+    min-height: 1.3em;
+    line-height: 1.4;
+  }
+
+  .catalog-list { border-top: 1px solid var(--rule-soft); }
+
+  .card-entry {
+    border-bottom: 1px solid var(--rule-soft);
+    padding: 13px 2px;
+    transition: padding-left 0.15s ease;
+  }
+
+  .card-entry:hover { padding-left: 6px; }
+
+  .card-entry .title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .card-entry .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+    margin-top: 3px;
+  }
+
+  .empty-note {
+    font-size: 0.85rem;
+    color: var(--ink-faint);
+    font-style: italic;
+    padding: 4px 0;
+  }
+
+  .reading-pane {
+    padding: 44px 60px 60px;
+    max-width: 740px;
+  }
+
+  @media (max-width: 800px) {
+    .reading-pane { padding: 30px 24px 44px; }
+  }
+
+  .scope-line {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    color: var(--ink-faint);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .scope-line select {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--brass);
+    color: var(--brass);
+    padding: 2px 0;
+    cursor: pointer;
+  }
+  .scope-line select:focus-visible { outline: 2px solid var(--brass); outline-offset: 3px; }
+
+  .question-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    margin-bottom: 40px;
+  }
+
+  .question-row input[type="text"] {
+    flex: 1;
+    font-family: 'Source Serif 4', serif;
+    font-size: 1.1rem;
+    padding: 8px 2px 10px;
+    border: none;
+    border-bottom: 2px solid var(--ink);
+    background: transparent;
+    color: var(--ink);
+    transition: border-color 0.15s ease;
+  }
+  .question-row input[type="text"]:focus {
+    outline: none;
+    border-bottom-color: var(--green);
+  }
+  .question-row input[type="text"]::placeholder { color: var(--ink-faint); }
+
+  .question-row button { flex-shrink: 0; margin-bottom: 1px; }
+
+  .loading-note {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .loading-note .dots::after {
+    content: '';
+    display: inline-block;
+    animation: dots 1.3s steps(4, end) infinite;
+    width: 1em;
+    text-align: left;
+  }
+  @keyframes dots {
+    0% { content: ''; }
+    25% { content: '.'; }
+    50% { content: '..'; }
+    75% { content: '...'; }
+  }
+
+  .answer-card {
+    display: none;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+  }
+  .answer-card.visible { display: block; }
+  .answer-card.shown { opacity: 1; transform: translateY(0); }
+
+  .stamp-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .stamp {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    color: var(--red-stamp);
+    border: 1.5px solid var(--red-stamp);
+    padding: 3px 9px;
+    border-radius: 2px;
+    transform: rotate(-2deg);
+    letter-spacing: 0.05em;
+    opacity: 0.85;
+  }
+
+  .stamp-line { flex: 1; height: 1px; background: var(--rule-soft); }
+
+  .answer-text {
+    font-size: 1.08rem;
+    line-height: 1.75;
+    white-space: pre-wrap;
+    color: var(--ink);
+  }
+
+  .citations {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+  }
+
+  .citations-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+    letter-spacing: 0.06em;
+    margin-bottom: 12px;
+  }
+
+  .citation {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    padding: 7px 0;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    border-bottom: 1px dotted var(--rule-soft);
+  }
+  .citation:last-child { border-bottom: none; }
+
+  .citation .idx { color: var(--ink-faint); width: 1.2em; }
+  .citation .doc { color: var(--ink); flex: 1; }
+  .citation .score { color: var(--brass); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Reading Room</h1>
+  <p>Upload a document, then ask it questions. Answers cite the page they came from.</p>
+</header>
+
+<div class="layout">
+
+  <aside class="drawer">
+    <div class="drawer-section">
+      <div class="drawer-label">ADD TO CATALOG</div>
+      <div class="upload-box">
+        <input type="file" id="fileInput" accept=".pdf">
+        <button onclick="uploadFile()">Upload PDF</button>
+        <div class="upload-status" id="uploadStatus"></div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-label">
+        <span>CATALOG (<span id="docCount">0</span>)</span>
+        <button class="ghost" onclick="loadDocuments()">refresh</button>
+      </div>
+      <div class="catalog-list" id="docsList"><div class="empty-note">Nothing catalogued yet.</div></div>
+    </div>
+  </aside>
+
+  <main class="reading-pane">
+    <div class="scope-line">
+      searching:
+      <select id="docSelect"><option value="">the whole catalog</option></select>
+    </div>
+
+    <div class="question-row">
+      <input type="text" id="questionInput" placeholder="What does this document say about…" onkeydown="if(event.key==='Enter') askQuestion()">
+      <button onclick="askQuestion()">Ask</button>
+    </div>
+
+    <div id="loadingNote" class="loading-note" style="display:none;">
+      <span>Reading through the source material<span class="dots"></span></span>
+    </div>
+
+    <div class="answer-card" id="answerCard">
+      <div class="stamp-row">
+        <div class="stamp">ANSWERED FROM SOURCE</div>
+        <div class="stamp-line"></div>
+      </div>
+      <div class="answer-text" id="answerText"></div>
+      <div class="citations">
+        <div class="citations-label">CITED PAGES</div>
+        <div id="citationsList"></div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+  const API_BASE = "";
+
+  async function uploadFile() {
+    const fileInput = document.getElementById("fileInput");
+    const statusDiv = document.getElementById("uploadStatus");
+
+    if (!fileInput.files.length) {
+      statusDiv.textContent = "Choose a PDF first.";
+      return;
+    }
+
+    statusDiv.textContent = "Filing into the catalog…";
+
+    const formData = new FormData();
+    formData.append("file", fileInput.files[0]);
+
+    try {
+      const res = await fetch(`${API_BASE}/documents`, { method: "POST", body: formData });
+      if (!res.ok) {
+        statusDiv.textContent = `Error: ${res.status}`;
+        return;
+      }
+      const data = await res.json();
+      statusDiv.textContent = `"${data.filename}" is being read in…`;
+      pollDocumentStatus(data.doc_id, statusDiv);
+    } catch (err) {
+      statusDiv.textContent = `Failed: ${err.message}`;
+    }
+  }
+
+  async function pollDocumentStatus(docId, statusDiv) {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/documents/${docId}`);
+        const data = await res.json();
+        if (data.status === "completed") {
+          clearInterval(interval);
+          statusDiv.textContent = `Catalogued — ${data.num_chunks} passages indexed.`;
+          loadDocuments();
+        } else if (data.status === "failed") {
+          clearInterval(interval);
+          statusDiv.textContent = `Failed to read: ${data.error}`;
+        }
+      } catch (err) {
+        clearInterval(interval);
+      }
+    }, 1500);
+  }
+
+  async function loadDocuments() {
+    const listDiv = document.getElementById("docsList");
+    const select = document.getElementById("docSelect");
+    const countSpan = document.getElementById("docCount");
+
+    try {
+      const res = await fetch(`${API_BASE}/documents`);
+      const docs = await res.json();
+
+      countSpan.textContent = docs.length;
+
+      if (!docs.length) {
+        listDiv.innerHTML = '<div class="empty-note">Nothing catalogued yet.</div>';
+      } else {
+        listDiv.innerHTML = docs.map(d =>
+          `<div class="card-entry"><div class="title">${d.doc_id}</div><div class="meta">${d.num_chunks} passages</div></div>`
+        ).join("");
+      }
+
+      select.innerHTML = '<option value="">the whole catalog</option>';
+      docs.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d.doc_id;
+        opt.textContent = d.doc_id;
+        select.appendChild(opt);
+      });
+    } catch (err) {
+      listDiv.innerHTML = `<div class="empty-note">Could not load catalog.</div>`;
+    }
+  }
+
+  async function askQuestion() {
+    const question = document.getElementById("questionInput").value;
+    const docId = document.getElementById("docSelect").value || null;
+    const loadingNote = document.getElementById("loadingNote");
+    const answerCard = document.getElementById("answerCard");
+
+    if (!question.trim()) return;
+
+    answerCard.classList.remove("visible", "shown");
+    loadingNote.style.display = "flex";
+
+    try {
+      const res = await fetch(`${API_BASE}/query`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, top_k: 4, doc_id: docId })
+      });
+
+      loadingNote.style.display = "none";
+
+      if (!res.ok) {
+        document.getElementById("answerText").textContent = `Error: ${res.status}`;
+        revealAnswer();
+        return;
+      }
+
+      const data = await res.json();
+      document.getElementById("answerText").textContent = data.answer;
+
+      const citationsList = document.getElementById("citationsList");
+      citationsList.innerHTML = data.sources.map((s, i) =>
+        `<div class="citation"><span class="idx">${i + 1}.</span><span class="doc">${s.doc_id}, p. ${s.page ?? '—'}</span><span class="score">${s.relevance_score}</span></div>`
+      ).join("");
+
+      revealAnswer();
+    } catch (err) {
+      loadingNote.style.display = "none";
+      document.getElementById("answerText").textContent = `Request failed: ${err.message}`;
+      revealAnswer();
+    }
+  }
+
+  function revealAnswer() {
+    const answerCard = document.getElementById("answerCard");
+    answerCard.classList.add("visible");
+    requestAnimationFrame(() => answerCard.classList.add("shown"));
+  }
+
+  loadDocuments();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+data/
+uploads/
+.env
+__pycache__/
+*.pyc
+.dockerignore
